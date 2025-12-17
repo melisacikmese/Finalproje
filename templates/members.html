@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>👥 Üye Yönetimi</h1>
+    <button class="btn btn-primary" onclick="openModal('addMemberModal')">+ Yeni Üye Ekle</button>
+</div>
+
+<!-- Arama -->
+<div class="search-bar">
+    <form method="GET" action="{{ url_for('members') }}" class="search-form">
+        <input type="text" name="search" placeholder="İsim, e-posta veya telefon ara..." value="{{ search }}" class="search-input">
+        <button type="submit" class="btn btn-primary">🔍 Ara</button>
+        <a href="{{ url_for('members') }}" class="btn btn-secondary">Temizle</a>
+    </form>
+</div>
+
+<!-- Üye Listesi -->
+<div class="table-container">
+    {% if members %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Ad Soyad</th>
+                <th>E-posta</th>
+                <th>Telefon</th>
+                <th>Adres</th>
+                <th>Üyelik Tarihi</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+            <tr>
+                <td>{{ member.id }}</td>
+                <td><strong>{{ member.name }}</strong></td>
+                <td>📧 {{ member.email }}</td>
+                <td>{{ member.phone or '-' }}</td>
+                <td>{{ member.address or '-' }}</td>
+                <td>{{ member.membership_date }}</td>
+                <td>
+                    <button class="btn-icon" title="Düzenle">✏️</button>
+                    <a href="{{ url_for('delete_member', member_id=member.id) }}" 
+                       class="btn-icon" 
+                       onclick="return confirm('Bu üyeyi silmek istediğinizden emin misiniz?')"
+                       title="Sil">🗑️</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>Üye bulunamadı</h3>
+        <p>Yeni üye eklemek için yukarıdaki butona tıklayın</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Üye Ekleme Modal -->
+<div id="addMemberModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Yeni Üye Ekle</h2>
+            <button class="modal-close" onclick="closeModal('addMemberModal')">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('add_member') }}">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Ad Soyad *</label>
+                    <input type="text" name="name" required placeholder="Üye adını girin">
+                </div>
+                <div class="form-group">
+                    <label>E-posta *</label>
+                    <input type="email" name="email" required placeholder="ornek@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Telefon</label>
+                    <input type="tel" name="phone" placeholder="0555 123 4567">
+                </div>
+                <div class="form-group full-width">
+                    <label>Adres</label>
+                    <textarea name="address" rows="3" placeholder="Üyenin adresini girin"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success">💾 Kaydet</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addMemberModal')">İptal</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

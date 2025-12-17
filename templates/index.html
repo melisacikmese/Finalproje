@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Kontrol Paneli</h1>
+    <p>Kütüphane istatistiklerine ve son işlemlere genel bakış</p>
+</div>
+
+<!-- İstatistik Kartları -->
+<div class="stats-grid">
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">📚</div>
+        <div class="stat-content">
+            <h3>{{ total_books }}</h3>
+            <p>Toplam Kitap</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+            <h3>{{ available_books }}</h3>
+            <p>Mevcut Kitap</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-info">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+            <h3>{{ total_members }}</h3>
+            <p>Kayıtlı Üye</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-warning">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-content">
+            <h3>{{ active_loans }}</h3>
+            <p>Aktif Ödünç</p>
+        </div>
+    </div>
+</div>
+
+<!-- Geciken Kitaplar Uyarısı -->
+{% if overdue_loans %}
+<div class="alert alert-warning">
+    <h3>⚠️ Geciken Kitaplar ({{ overdue_loans|length }})</h3>
+    <div class="overdue-list">
+        {% for loan in overdue_loans %}
+        <div class="overdue-item">
+            <strong>{{ loan.book_title }}</strong> - {{ loan.member_name }} 
+            <span class="badge badge-danger">Son tarih: {{ loan.due_date }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- İki Sütunlu Layout -->
+<div class="dashboard-grid">
+    <!-- Son Eklenen Kitaplar -->
+    <div class="dashboard-card">
+        <div class="card-header">
+            <h2>📖 Son Eklenen Kitaplar</h2>
+            <a href="{{ url_for('books') }}" class="btn btn-sm">Tümünü Gör</a>
+        </div>
+        <div class="card-body">
+            {% if recent_books %}
+                <div class="list-group">
+                    {% for book in recent_books %}
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <h4>{{ book.title }}</h4>
+                            <p>{{ book.author }}</p>
+                            {% if book.category %}
+                            <span class="badge badge-primary">{{ book.category }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="list-item-badge">
+                            {% if book.available > 0 %}
+                            <span class="badge badge-success">Mevcut: {{ book.available }}</span>
+                            {% else %}
+                            <span class="badge badge-danger">Stokta Yok</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>Henüz kitap eklenmedi</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Son Üyeler -->
+    <div class="dashboard-card">
+        <div class="card-header">
+            <h2>👥 Son Kayıtlı Üyeler</h2>
+            <a href="{{ url_for('members') }}" class="btn btn-sm">Tümünü Gör</a>
+        </div>
+        <div class="card-body">
+            {% if recent_members %}
+                <div class="list-group">
+                    {% for member in recent_members %}
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <h4>{{ member.name }}</h4>
+                            <p>📧 {{ member.email }}</p>
+                            {% if member.phone %}
+                            <p>📱 {{ member.phone }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="list-item-badge">
+                            <span class="badge badge-info">{{ member.membership_date }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>Henüz üye kaydı yok</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

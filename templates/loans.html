@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🔄 Ödünç İşlemleri</h1>
+    <button class="btn btn-primary" onclick="openModal('addLoanModal')">+ Yeni Ödünç Ver</button>
+</div>
+
+<!-- Filtre Butonları -->
+<div class="filter-tabs">
+    <a href="{{ url_for('loans') }}?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">
+        Tümü
+    </a>
+    <a href="{{ url_for('loans') }}?status=active" class="filter-tab {% if status_filter == 'active' %}active{% endif %}">
+        Aktif Ödünçler
+    </a>
+    <a href="{{ url_for('loans') }}?status=returned" class="filter-tab {% if status_filter == 'returned' %}active{% endif %}">
+        İade Edilenler
+    </a>
+    <a href="{{ url_for('loans') }}?status=overdue" class="filter-tab {% if status_filter == 'overdue' %}active{% endif %}">
+        Gecikenler
+    </a>
+</div>
+
+<!-- Ödünç Listesi -->
+<div class="table-container">
+    {% if loans %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Kitap</th>
+                <th>Yazar</th>
+                <th>Üye</th>
+                <th>Ödünç Tarihi</th>
+                <th>Son Tarih</th>
+                <th>İade Tarihi</th>
+                <th>Durum</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loan in loans %}
+            <tr class="{% if loan.status == 'active' and loan.due_date < now().strftime('%Y-%m-%d') %}overdue-row{% endif %}">
+                <td>{{ loan.id }}</td>
+                <td><strong>{{ loan.book_title }}</strong></td>
+                <td>{{ loan.book_author }}</td>
+                <td>{{ loan.member_name }}</td>
+                <td>{{ loan.loan_date }}</td>
+                <td>
+                    {{ loan.due_date }}
+                    {% if loan.status == 'active' and loan.due_date < now().strftime('%Y-%m-%d') %}
+                    <span class="badge badge-danger">GECİKMİŞ</span>
+                    {% endif %}
+                </td>
+                <td>{{ loan.return_date or '-' }}</td>
+                <td>
+                    {% if loan.status == 'active' %}
+                    <span class="badge badge-warning">Aktif</span>
+                    {% else %}
+                    <span class="badge badge-success">İade Edildi</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if loan.status == 'active' %}
+                    <a href="{{ url_for('return_loan', loan_id=loan.id) }}" 
+                       class="btn btn-sm btn-success"
+                       onclick="return confirm('Bu kitabı iade almak istediğinizden emin misiniz?')">
+                        ✅ İade Al
+                    </a>
+                    <a href="{{ url_for('extend_loan', loan_id=loan.id) }}" 
+                       class="btn btn-sm btn-info"
+                       onclick="return confirm('Ödünç süresini 7 gün uzatmak istiyor musunuz?')">
+                        ⏰ Uzat
+                    </a>
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🔄</div>
+        <h3>Ödünç işlemi bulunamadı</h3>
+        <p>Yeni ödünç işlemi başlatmak için yukarıdaki butona tıklayın</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Ödünç Verme Modal -->
+<div id="addLoanModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Yeni Ödünç İşlemi</h2>
+            <button class="modal-close" onclick="closeModal('addLoanModal')">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('add_loan') }}">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Kitap Seç *</label>
+                    <select name="book_id" required class="form-select">
+                        <option value="">Kitap seçin...</option>
+                        {% for book in available_books %}
+                        <option value="{{ book.id }}">
+                            {{ book.title }} - {{ book.author }} ({{ book.available }} adet mevcut)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>Üye Seç *</label>
+                    <select name="member_id" required class="form-select">
+                        <option value="">Üye seçin...</option>
+                        {% for member in members %}
+                        <option value="{{ member.id }}">
+                            {{ member.name }} ({{ member.email }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ödünç Süresi (Gün)</label>
+                    <input type="number" name="days" value="14" min="1" max="90" required>
+                </div>
+                <div class="form-group full-width">
+                    <label>Notlar</label>
+                    <textarea name="notes" rows="3" placeholder="İsteğe bağlı notlar..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success">💾 Ödünç Ver</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addLoanModal')">İptal</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
