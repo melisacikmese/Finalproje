@@ -264,11 +264,7 @@ def loans():
     query += ' ORDER BY l.loan_date DESC'
     
     loans = conn.execute(query, params).fetchall()
-    
-    # Ödünç verilebilir kitaplar
     available_books = conn.execute('SELECT * FROM books WHERE available > 0 ORDER BY title').fetchall()
-    
-    # Üyeler
     members = conn.execute('SELECT * FROM members ORDER BY name').fetchall()
     
     conn.close()
@@ -277,7 +273,8 @@ def loans():
                          loans=loans, 
                          available_books=available_books,
                          members=members,
-                         status_filter=status_filter)
+                         status_filter=status_filter,
+                         now=datetime.now)  # ← BU SATIR ÖNEMLİ!
 
 # Ödünç verme
 @app.route('/loans/add', methods=['POST'])
